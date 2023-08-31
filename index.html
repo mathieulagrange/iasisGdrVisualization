@@ -4,9 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" href="#">
+  <style>
+    #chart {
+      width: 45%; 
+      height: 45%; 
+      margin: auto;
+    }
+  </style>
   <title>IASIS GDR Visualizations</title>
   <!-- Include D3.js library -->
-  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
   <h1 style="text-align: center;">IASIS GDR Visualizations</h1>
@@ -66,11 +73,6 @@ function getRandomColor() {
 d3.csv("IdKeyWords.csv").then(function(idKeyWords)  {
   d3.csv("IdFields.csv").then(function(idFields)  {
     d3.csv("KeyWords_ISIS_20230512.csv").then(function(keyWords) {
-      // const idKeyWords = new Map(idKeyWordsData.map(item => [item.idKeyWord, item]));
-      // const idFields = new Map(idFieldsData.map(item => [item.idField, item]));
-      // const keyWords = new Map(keyWordsData.map(item => [item.idKeyWord, item]));
-      console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
-      console.log(JSON.stringify(idKeyWords))
 
 //////////////////////////////
 ////////////////////////////
