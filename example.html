@@ -1,18 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IASIS GDR Visualizations</title>
-  <!-- Include D3.js library -->
-  <script src="https://d3js.org/d3.v6.min.js"></script>
-</head>
-<body>
-  <h1 style="text-align: center;">IASIS GDR Visualizations</h1>
-  <div id="chart"></div>
-  
-  <script>
+<meta charset="utf-8">
 
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<script>
 
 ////////////////////////////////////
 /////////////////////////////////////
@@ -21,9 +16,10 @@
 width = 932;
 height = 932;
 format = d3.format(",d");
-// seedrandom = require('seedrandom');
-// seed = 0; // Replace with your desired seed
-// rng = seedrandom(seed);
+d3 = require("d3@5");
+seedrandom = require('seedrandom');
+seed = 0; // Replace with your desired seed
+rng = seedrandom(seed);
 pack = data => d3.pack()
     .size([width, height])
     .padding(3)
@@ -62,11 +58,9 @@ function getRandomColor() {
 // idFields = FileAttachment("IdFields.csv").csv({typed: true})
 // keyWords = FileAttachment("KeyWords_ISIS_20230512.csv").csv({typed: true})
 
-d3.csv("IdKeyWords.csv", function(idKeyWords) {
-  d3.csv("idFields.csv", function(idFields) {
-    d3.csv("keyWords.csv", function(keyWords) {
-
-
+d3.csv("IdKeyWords.csv").then(idKeyWords => {
+  d3.csv("IdFields.csv").then(idFields => {
+    d3.csv("KeyWords_ISIS_20230512.csv").then(keyWords => {
 
 //////////////////////////////
 ////////////////////////////
@@ -181,9 +175,6 @@ const data_keywords = {
 
 function create_chart(data, font_size=21, opac_depth2=0.2, opac_depth3=0.2, opac_depth4=0.2, lineHeight=21, char_hight_to_width=1.8, depth4Link=true){
 
-
-console.log('XXXX BEGIN XXXXXXX')
-console.log(depth4Link)
   ///////////////////////////////////////////////
   //////////////////////////////////////////////
   // VARIABLES
@@ -713,17 +704,13 @@ function updateTextSize(scale) {
   return svg.node();
 }
 
-    
+// create_chart(data_keywords)
 // Call your function to create the chart
 const chartContainer = document.getElementById('chart');
 chartContainer.appendChild(create_chart(data_keywords));
+});
+  });
+});
 
-    })
-    })
-    })
 
-
-    
-  </script>
-</body>
-</html>
+    </script>
