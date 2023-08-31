@@ -310,12 +310,12 @@ function mouseOverCircle(){
           label.filter(d => (d.data.depth === 3) & (d.parent == curData)).style("display", "inline")
         }
         if ((cur_depth == 3) & (cur_zoom_node == curData)){
-          label.filter(d => d.data.depth === 4).style("display", "inline")
+          label.filter(d => (d.data.depth === 4) & (d.parent == curData)).style("display", "inline")
           d3.select(this).attr("stroke-width", 0).attr("stroke", strokeColor);
           // label.filter(d => (d.data.depth === 3) & (d.parent == curData.parent)).style("display", "inline")
         }
         if ((cur_depth == 4) & (cur_zoom_node == curData.parent)){
-          label.filter(d => d.data.depth === 4).style("display", "inline")
+          label.filter(d => (d.data.depth === 4) & (d.parent == curData.parent)).style("display", "inline")
         }
       }
 }
