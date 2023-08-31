@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="#">
   <title>IASIS GDR Visualizations</title>
   <!-- Include D3.js library -->
   <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -62,11 +63,12 @@ function getRandomColor() {
 // idFields = FileAttachment("IdFields.csv").csv({typed: true})
 // keyWords = FileAttachment("KeyWords_ISIS_20230512.csv").csv({typed: true})
 
-d3.csv("IdKeyWords.csv", function(idKeyWords) {
-  d3.csv("IdFields.csv", function(idFields) {
-    d3.csv("KeyWords_ISIS_20230512.csv", function(keyWords) {
-
-
+d3.csv("IdKeyWords.csv", function(idKeyWordsData) {
+  d3.csv("IdFields.csv", function(idFieldsData) {
+    d3.csv("KeyWords_ISIS_20230512.csv", function(keyWordsData) {
+      const idKeyWords = new Map(idKeyWordsData.map(item => [item.idKeyWord, item]));
+      const idFields = new Map(idFieldsData.map(item => [item.idField, item]));
+      const keyWords = new Map(keyWordsData.map(item => [item.idKeyWord, item]));
 
 //////////////////////////////
 ////////////////////////////
