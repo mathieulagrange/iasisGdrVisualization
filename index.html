@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IASIS GDR Visualizations</title>
+  <!-- Include D3.js library -->
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+  <h1 style="text-align: center;">IASIS GDR Visualizations</h1>
+  <div id="chart"></div>
+  
+  <script>
+
+
+////////////////////////////////////
+/////////////////////////////////////
+// INIT
+//////////////////////////////
+width = 932;
+height = 932;
+format = d3.format(",d");
+d3 = require("d3@5");
+seedrandom = require('seedrandom');
+seed = 0; // Replace with your desired seed
+rng = seedrandom(seed);
+pack = data => d3.pack()
+    .size([width, height])
+    .padding(3)
+  (d3.hierarchy(data)
+    .sum(d => d.value)
+    .sort((a, b) => b.value - a.value))
+////////////////////////////////////
+/////////////////////////////////////
+// DATASET COLORS 
+//////////////////////////////
+
+color_list = ['b76dee','ec9880','a5f571','f578be', 'a18884', '7fbfd6', 'f9ac5f', 'f1e683', '898989'];
+listField = ['Théorie et Méthodes', 'Apprentissage Machine', 'Télécommunications', 'Codage et sécurité multimédia', 
+                 'Adéquation algorithme-architecture, traitements embarqués', 'Audio, vision, perception', 'Fusion, multimodalité, réseaux de capteurs, traitement multicanal', 'Imagerie computationnelle', 'Autres'];
+
+// Map the arrays together
+colors = listField.map((name, index) => {
+  return { name, color: color_list[index]};
+});
+
+function getRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
+
+/////////////////////////////////
+////////////////////////////////
+// OPEN CSV DATA
+//////////////////////////////
+
+idKeyWords = FileAttachment("IdKeyWords.csv").csv({typed: true})
+idFields = FileAttachment("IdFields.csv").csv({typed: true})
+keyWords = FileAttachment("KeyWords_ISIS_20230512.csv").csv({typed: true})
+
+//////////////////////////////
+////////////////////////////
+// JOIN THE 3 CSV DATASETS
+//////////////////////////////
+
+files = {
+  // First join idKeyWords and idFields based on 'idFields'
+  const idKeyWordsTotal = idKeyWords.map(idKeyWordsItem => {
+    const matchingIdField = idFields.find(idFieldsItem => idFieldsItem.idField === idKeyWordsItem.idField);
+    return {
+      ...idKeyWordsItem,
+      field: matchingIdField ? matchingIdField.field : undefined
+    };
+  });
+
+  // Create a map using 'idKeyWord' as the key for faster lookup
+  const idKeyWordsFields = new Map(idKeyWordsTotal.map(totalItem => [totalItem.idKeyWord, totalItem]));
+
+  // Join idKeyWordsFields (join of idKeyWords and idFields) and keyWords on 'idKeyWord'
+  const joinedArray = keyWords.map(keyWordsItem => {
+    const matchingTotal = idKeyWordsFields.get(keyWordsItem.idKeyWord);
+    return {
+      ...keyWordsItem,
+      ...matchingTotal
+    };
+  });
+
+  // Group the rows of the joinedArray and count the number of rows in a new column 'count'
+  const groupedArray = joinedArray.reduce((accumulator, currentItem) => {
+    const { idKeyWord, keyWord, idField, field, nomLabo, sigleLabo, siteWeb } = currentItem;
+    const existingGroup = accumulator.find(groupItem => 
+      groupItem.idKeyWord === idKeyWord &&
+      groupItem.keyWord === keyWord &&
+      groupItem.idField === idField &&
+      groupItem.field === field &&
+      groupItem.nomLabo === nomLabo &&
+      groupItem.sigleLabo === sigleLabo
+    );
+
+    if (existingGroup) {
+      existingGroup.count++;
+    } else {
+      accumulator.push({
+        ...currentItem,
+        count: 1,
+        siteWeb: siteWeb // Add the 'siteWeb' property to the group
+      });
+    }
+
+    return accumulator;
+  }, []);
+
+  return groupedArray.map(item => ({
+    ...item,
+    field: item.field !== undefined ? item.field : '...'
+  }));
+}
+
+//////////////////////////////
+////////////////////////////
+// CREATE HIERARCHICAL DATASET
+//////////////////////////////
+
+// Create the hierarchical nested structure
+data_keywords = { 
+// Create the hierarchical nested structure with updated value at the field layer
+const data_modan = {
+  name: "IASIS",
+  depth: 1,
+  children: idFields.map(fieldEntry => {
+    const field = fieldEntry.field;
+    
+    const keyWordChildren = idKeyWords.filter(keyWordEntry => keyWordEntry.idField === fieldEntry.idField);
+    
+    const fieldValue = keyWordChildren.reduce((sum, keyWordEntry) => {
+      const keyWord = keyWordEntry.keyWord;
+      const keyWordChildrenCount = files.filter(entry => entry.keyWord === keyWord).length;
+      return sum + keyWordChildrenCount;
+    }, 0);
+
+    return {
+      name: field,
+      depth: 2,
+      value: fieldValue,
+      color: colors.find(color => color.name === field).color,
+      children: keyWordChildren.map(keyWordEntry => {
+        const keyWord = keyWordEntry.keyWord;
+        
+        return {
+          name: keyWord,
+          depth: 3,
+          value: files.filter(entry => entry.keyWord === keyWord).length,
+          children: files.filter(entry => entry.keyWord === keyWord)
+            .map(entry => ({
+              full_name: entry.nomLabo,
+              name: entry.sigleLabo,
+              depth: 4,
+              value: entry.count,
+              website: entry.siteWeb
+            }))
+        };
+      })
+    };
+  })
+};
+                  return(data_modan)
+                 }
+
+
+    
+//////////////////////////////
+////////////////////////////
+// CHART CREATOR
+///////////////////////////
+
+function create_chart(data, font_size=21, opac_depth2=0.2, opac_depth3=0.2, opac_depth4=0.2, lineHeight=21, char_hight_to_width=1.8, depth4Link=true){
+
+
+console.log('XXXX BEGIN XXXXXXX')
+console.log(depth4Link)
+  ///////////////////////////////////////////////
+  //////////////////////////////////////////////
+  // VARIABLES
+  //////////////////////////////////////////////
+  /////////////////////////////////////////////
+  
+  const root = pack(data);
+  let focus = root;
+  let view;
+  // define the current zoom depth (1 for general overview, 2 for first circles, 3 for second circles, 4 for fourth circles)
+  let cur_zoom = 1;
+  // define the current zoom node 
+  let cur_zoom_node = root
+  // lineheight is not exact (for example, a lineHeigt of 21 looks more on the graph like a lineHeight of 10.5), so a compensation
+  // term is used here
+  const lineHeightCompensation = 0.3
+  const strokeWidth = 2
+  const strokeColor = "#585858"
+  // const char_hight_to_width = 1.8
+  
+  ///////////////////////////////////////////////
+  //////////////////////////////////////////////
+  // SVG CREATION (view box, circles, labels)
+  //////////////////////////////////////////////
+  /////////////////////////////////////////////
+
+// Create a Map to associate circle nodes with their corresponding label groups
+const circleToLabelMap = new Map();
+
+// creates the view box where all the circles are
+const svg = d3
+  .create("svg")
+  .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
+  .style("display", "block")
+  .style("margin", "0 -14px")
+  .style("background", "#fff")
+  .style("cursor", "pointer")
+  .on("click", () => {
+    if (cur_zoom == 1) {
+      zoom(cur_zoom_node, cur_zoom_node)
+    } else {
+      zoom(cur_zoom_node.parent, cur_zoom_node)
+    }
+    }
+     );
+
+// mouseover functions. Note: had to add a background and thus a mouseOverBackground to solve conflicts between 'mouseover' and 'mouseout'. Mouseout is not longer needed on the circles svgs.
+function mouseOverBackground(){
+    node.attr("stroke-width", 0);
+    label.style("display", d => (d.parent === root ? "inline" : "none"))
+    label.style("display", d => (d.parent === root ? "inline" : "none"))
+}
+
+function mouseOverCircle(){
+      const cur_depth = d3.select(this)._groups[0][0].__data__.depth + 1
+      const curData = d3.select(this)._groups[0][0].__data__
+      // const curLabel = circleToLabelMap.get(this);
+
+      // reset labels and colors
+      label.style("display", "none")
+      node.attr("stroke-width", 0)
+
+      // give stroke to current circle
+      d3.select(this).attr("stroke-width", strokeWidth).attr("stroke", strokeColor);
+
+      if (cur_zoom == 1){
+        if (cur_depth == 2){
+           label.filter(d => (d.data.depth === 2) & (d != curData)).style("display", "inline")
+            label.filter(d => (d.data.depth === 3) & (d.parent == curData)).style("display", "inline")
+          d3.select(this).attr("stroke-width", 0).attr("stroke", strokeColor);
+        }
+        if (cur_depth == 3){
+          label.filter(d => (d.data.depth === 2) & (d != curData.parent)).style("display", "inline")
+          label.filter(d => (d.data.depth === 3) & (d.parent == curData.parent)).style("display", "inline")
+        }
+        if (cur_depth == 4){
+          label.filter(d => (d.data.depth === 2) & (d != curData.parent.parent)).style("display", "inline")
+          label.filter(d => (d.data.depth === 3) & (d.parent ==curData.parent.parent)).style("display", "inline")
+          d3.select(this).attr("stroke-width", 0).attr("stroke", strokeColor);
+          node.filter(d => (d.data.depth === 3) & (d == curData.parent)).attr("stroke-width", strokeWidth).attr("stroke", strokeColor);
+        }
+      }
+      if (cur_zoom == 2){
+        if ((cur_depth == 2) & (cur_zoom_node == curData)){
+          label.filter(d => (d.data.depth === 3) & (d.parent == curData)).style("display", "inline")
+        }
+        if ((cur_depth == 3) & (cur_zoom_node == curData.parent)){
+          label.filter(d => (d.data.depth === 3) & (d.parent == curData.parent) & (d != curData)).style("display", "inline")
+          label.filter(d => (d.data.depth === 4) & (d.parent == curData)).style("display", "inline")
+          d3.select(this).attr("stroke-width", 0).attr("stroke", strokeColor);
+        }
+        if ((cur_depth == 4) & (cur_zoom_node == curData.parent.parent)){
+          label.filter(d => (d.data.depth === 4) & (d.parent == curData.parent)).style("display", "inline")
+          label.filter(d => (d.data.depth === 3) & (d != curData.parent) & (d.parent == curData.parent.parent)).style("display", "inline")
+        }
+      }
+      if (cur_zoom == 3){
+        if (cur_depth == 2){
+          // label.filter(d => d.data.depth === 4).style("display", "inline")
+          label.filter(d => (d.data.depth === 3) & (d.parent == curData)).style("display", "inline")
+        }
+        if ((cur_depth == 3) & (cur_zoom_node == curData)){
+          label.filter(d => d.data.depth === 4).style("display", "inline")
+          d3.select(this).attr("stroke-width", 0).attr("stroke", strokeColor);
+          // label.filter(d => (d.data.depth === 3) & (d.parent == curData.parent)).style("display", "inline")
+        }
+        if ((cur_depth == 4) & (cur_zoom_node == curData.parent)){
+          label.filter(d => d.data.depth === 4).style("display", "inline")
+        }
+      }
+}
+
+// Function to deactivate the mouseovers event listeners
+function deactivateMouseover() {
+  backgroundGroup.on("mouseover", null); // Remove the event listener
+  node.on("mouseover", null); // Remove the event listener
+}
+  
+// Function to reactivate the mouseovers event listeners
+function reactivateMouseover() {
+  backgroundGroup.on("mouseover", mouseOverBackground);
+  node.on("mouseover", mouseOverCircle)}
+
+// This background group fill the background with a white square svg element. Allows to use a mouseover on the background
+const backgroundGroup = svg
+      .append("g")
+      .append("rect")
+      .attr("x", -width / 2)
+      .attr("y", -height / 2)
+      .attr("width", width)
+      .attr("height", height)
+      .attr("fill", "white")
+      .attr("class", "background-group")
+      .on("mouseover", mouseOverBackground);
+
+// creates all the circles
+const node = svg
+  .append("g")
+  .selectAll("circle")
+  .data(root.descendants().slice(1))
+  .join("circle")
+  .attr("fill", d => {
+    if (d.data.depth == 2){
+      return ("#" + d.data.color);
+    }
+    if (d.data.depth == 3){
+      return("#" +d.parent.data.color)
+    }
+    if (d.data.depth == 4){
+      return("#" +d.parent.parent.data.color)
+    }
+  })
+  .style("fill-opacity", d => {
+    if (d.data.depth == 2) {
+      return (opac_depth2)
+    } else if (d.data.depth == 3) {
+      return (opac_depth3)
+    } else if (d.data.depth == 4) {
+      return (0)
+    } else {
+      return (0)
+    }
+  })  
+  .on("mouseover", mouseOverCircle)
+  .on("click", d => {
+    if (cur_zoom == 1) {
+      if (d.data.depth == 2) {
+            focus !== d && (zoom(d, d), d3.event.stopPropagation())
+          } else if (d.data.depth == 3) {
+            focus !== d && (zoom(d.parent, d), d3.event.stopPropagation())
+    } else if (d.data.depth == 4) {
+          focus !== d && (zoom(d.parent.parent, d), d3.event.stopPropagation())
+      }
+    }
+    else if ([2,3].includes(cur_zoom)) {
+        if (d.data.depth == 3) {
+          focus !== d && (zoom(d, d), d3.event.stopPropagation())
+      }
+      if (d.data.depth == 4) {
+          if ((cur_zoom == 3)&(depth4Link == true)){
+            window.open(d.data.website, "_blank");
+          }
+          focus !== d && (zoom(d.parent, d), d3.event.stopPropagation())
+      }
+  }
+  }
+
+      
+  );
+
+// add label when mouse stays for a long time on a node
+node.append("title").text(
+  d => {if (cur_zoom == 1) {
+      if (d.data.depth == 3) {
+        return `${d.parent ? d.parent.data.name : ""}`
+    } else if (d.data.depth == 4) {
+        return `${d.parent ? d.parent.parent.data.name : ""}`
+      }  
+      else {
+      return `${d.parent ? d.data.name : ""}`}
+  
+  } else if (cur_zoom == 2){
+    if (d.data.depth == 3) {
+      return `${d
+      .ancestors()
+      .map(d => d.data.name)
+      .reverse()
+      .slice(1) // Remove the first ancestor (depth 1)
+    }`}
+    if (d.data.depth == 4) {
+      return `${d.parent ? d.parent.data.name : ""}`
+  } }
+    else if (cur_zoom == 3){
+      return `${d
+      .ancestors()
+      .map(d => d.data.name)
+      .reverse()
+      .slice(1) // Remove the first ancestor (depth 1)
+    }`}
+  
+       }
+)  
+
+// creates all the labels
+const label = svg
+  .append("g")
+  .style("font", font_size + "px bebas neue")
+  .attr("pointer-events", "none")
+  .attr("text-anchor", "mid")
+  .selectAll("text") // Use <g> elements for each label
+  .data(root.descendants())
+  .join("g")
+  .attr("transform", d => `translate(${d.x},${d.y})`)
+  // .style("fill-opacity", d => (d.parent === root ? 1 : 0))
+  .style("fill-opacity", 1)
+  .style("display", d => (d.parent === root ? "inline" : "none"))
+  
+// Associate each circle node with its corresponding label group in the map
+node.each(function(d) {
+  circleToLabelMap.set(this, label.filter(labelData => labelData === d));
+});
+
+///////////////////////////////////////////////
+//////////////////////////////////////////////
+// LABELS SIZE AND PLACEMENT MODIFICATIONS
+//////////////////////////////////////////////
+/////////////////////////////////////////////
+
+// put labels words vertically if they are outside of their circle, reduce the font if words are still too big or reduce the font if the lines created go outside of the circle vertically.
+function updateLabelSize (){
+label.each(function(d) {
+  const words = d.data.name.split(' ');
+  const lines = [];
+  // this depends on the font that is used, it is the ratio between the height and the width a specific font
+  let maxLength = 0;
+  let currentLine = '';
+  const cur_depth = d.data.depth
+  var maxLengthPerCircle = (2*d.r)
+
+  // as we zoom in when we click, the maxLengthPerCircle that could be attributed must be adjusted to the size of the new zoom
+  
+  if (d.parent){
+    if (cur_zoom == 2){
+      if (cur_depth == 2){
+        maxLengthPerCircle = ((width) / (2*d.r))*(2*d.r); // Adjust the proportion as needed
+      }
+      if (cur_depth == 3){
+        maxLengthPerCircle = ((width) / (2*d.parent.r))*(2*d.r); // Adjust the proportion as needed
+      }
+      if (cur_depth == 4){
+        maxLengthPerCircle = ((width) / (2*d.parent.parent.r))*(2*d.r); // Adjust the proportion as needed
+      }
+    }
+    if (cur_zoom == 3){
+      if (cur_depth == 2){
+        maxLengthPerCircle = ((width) / (2*d.r))*(2*d.r); // Adjust the proportion as needed
+      }
+      if (cur_depth == 3){
+        maxLengthPerCircle = ((width) / (2*d.r))*(2*d.r); // Adjust the proportion as needed
+      }
+      if (cur_depth == 4){
+        maxLengthPerCircle = ((width) / (2*d.parent.r))*(2*d.r); // Adjust the proportion as needed
+      }
+    }
+  }
+
+  
+  // split the label if it is too wide regarding maxLengthPerCircle, and store the maximum length that it takes, in case 
+  // even a single word is larger than the circle. Use char_hight_to_width to adapt the fontsize horizontally.
+  words.forEach(word => {
+    if ((currentLine.length + word.length)*font_size/char_hight_to_width < (maxLengthPerCircle)) {
+      currentLine += word + ' ';
+    } else {
+      lines.push(currentLine.trim());
+      currentLine = word + ' ';
+      if ((currentLine.length * font_size/char_hight_to_width) > (maxLength)){
+        maxLength = currentLine.length * font_size/char_hight_to_width;
+      } 
+    }
+  });
+  
+  lines.push(currentLine.trim());
+
+  const text = d3.select(this);
+  const numLines = lines.length;
+
+  // the scaleFactor will be used to reduce the font size
+  let scaleFactor = 1;
+
+  // adjust the scale factor to fit the label horizontally
+  if (maxLength > maxLengthPerCircle) {
+    scaleFactor = scaleFactor*(maxLength/maxLengthPerCircle);
+    // text.attr("font-size", `${parseFloat(text.attr("font-size")) * scaleFactor}px`);
+  } 
+
+  // recalculate the lineHeight with this new scale factor
+  var newlineHeight = lineHeight/scaleFactor
+  const maxHeight = (numLines*font_size/scaleFactor) + ((numLines-1)*(newlineHeight)*lineHeightCompensation)
+  
+  // adjust the scale factor to fit the label vertically (in case all the stacked words exceed the hight of the circle)
+  if (maxHeight > maxLengthPerCircle) {
+    scaleFactor = scaleFactor*(maxHeight/maxLengthPerCircle);
+  } 
+
+  // recalculate the new lineHeight given the final scaleFactor
+  newlineHeight = lineHeight/scaleFactor
+
+  text.selectAll("text").remove();
+  
+  for (let i = 0; i < lines.length; i++) {
+    const yOffset = ((numLines-1) * newlineHeight)/2
+    const adjustedDy = `${i * newlineHeight - yOffset}px`;
+    text
+      .append("text")
+      .attr("dy", adjustedDy)
+      .style("font-size", font_size/scaleFactor+"px") // Set the font size explicitly
+      .style("fill", "#000")
+      .style("text-anchor", "middle") // Center the text horizontally
+      .text(lines[i]);
+  }
+
+});
+}
+
+
+///////////////////////////////////////////////
+//////////////////////////////////////////////
+// Label that appears on a pup-up when mouse stays for a long time on a node
+//////////////////////////////////////////////
+/////////////////////////////////////////////
+
+function updateTitle (){
+      // update label when mouse stays for a long time on a node
+      //node.select("title").remove();
+      node.select("title").text(
+        d => {
+          const cur_depth = d.data.depth
+          if (cur_zoom == 1) {
+            if (cur_depth == 3) {
+              // return `${d.parent ? d.parent.data.name : ""}`
+              return `${d.data.name}`
+          } else if (d.data.depth == 4) {
+              return `${d.parent ? d.parent.data.name : ""}`
+            }  
+            else {
+            return `${d.parent ? d.data.name : ""}`}
+        
+        } 
+          if (cur_zoom == 2){
+            if (cur_depth == 2){
+              return `${d.data.name}`
+            }
+            if (cur_depth == 3) {
+              // return `${d
+              // .ancestors()
+              // .map(d => d.data.name)
+              // .reverse()
+              // .slice(1) // Remove the first ancestor (depth 1)
+              // .join(" + ")          }`
+              return `${d.data.name}`
+  }
+            if (cur_depth == 4) {
+              // return `${d
+              // .parent.ancestors()
+              // .map(d => d.data.name)
+              // .reverse()
+              // .slice(1) // Remove the first ancestor (depth 1)
+              // .join(" + ")}`
+              return `${d.data.name}`
+          
+        } }
+          if (cur_zoom == 3){
+          //   return `${d
+          //   .ancestors()
+          //   .map(d => d.data.name)
+          //   .reverse()
+          //   .slice(1) // Remove the first ancestor (depth 1)
+          //   .join(" + ")
+          // }`
+            return `${d.data.name}`
+          }
+             }
+      )
+}
+
+
+  
+///////////////////////////////////////////////
+//////////////////////////////////////////////
+// Zooming functions
+//////////////////////////////////////////////
+/////////////////////////////////////////////
+
+// first zoom to go to the general overview
+zoomTo([root.x, root.y, root.r * 2], root.r * 2, 'none');
+
+function zoomTo(v, r2, d) {
+  const k = width / v[2];
+  const op = r2/v[2]
+  
+  view = v;
+
+  label.attr(
+    "transform",
+    d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`
+  );
+  node.attr(
+    "transform",
+    d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`
+  );
+  node.attr("r", d => d.r * k);
+
+  if (d != 'none'){
+    label.filter(l => l.parent != d).style("fill-opacity", op**5)
+  }
+}
+
+function zoom(d, dClick) {
+  // d is the data node where you want to zoom, dClick is the data node that you've clicked on to be on that zoom
+  deactivateMouseover();
+  const focus0 = focus;
+
+  focus = d;
+  cur_zoom = d.data.depth
+  cur_zoom_node = d
+  
+  const transition = svg
+    .transition()
+    .duration(d3.event.altKey ? 7500 : 750)
+    .tween("zoom", d => {
+      const i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
+      return t => zoomTo(i(t), focus.r*2, d);
+    });
+  
+  updateLabelSize();
+  
+  // Inside the zoom function, after setting up the transition
+  transition.on("start", function() {
+    // Hide the label of the clicked cell when the transition starts
+  node.attr("stroke-width", 0).attr("stroke", strokeColor);
+  if (cur_zoom == 1){
+    label.filter(d => d.data.depth === 2).style("display", "inline")
+    label.filter(d => d.data.depth === 3).style("display", "none")
+    label.filter(d => d.data.depth === 4).style("display", "none")
+  }
+  if (cur_zoom == 2){
+    if (d.data.depth === 2){
+      label.filter(l => l.parent === d).style("display", "inline")
+      label.filter(l => l.parent != d).style("display", "none")
+      label.filter(l => l.data.depth == 4).style("display", "none")
+    }
+    if (d.data.depth === 3){
+      label.filter(l => l === d).style("display", "inline")
+      label.filter(l => l.data.depth == 4).style("display", "none")
+    }
+    if (d.data.depth === 4){
+      label.filter(l => l === d.parent).style("display", "inline")
+    }
+  }
+  if (cur_zoom == 3){
+    if (d.data.depth === 2){
+      label.filter(l => l.parent.parent === d).style("display", "inline")
+      label.filter(l => l.parent.parent != d).style("display", "none")
+    }
+    if (d.data.depth === 3){
+      label.filter(l => l.parent === d).style("display", "inline")
+      label.filter(l => l.parent != d).style("display", "none")
+    }
+    if (d.data.depth === 4){
+      label.filter(l => l === d).style("display", "inline")
+      label.filter(l => l != d).style("display", "none")
+    }
+  }
+  });
+  
+  transition.on("end", function() {
+    if ((dClick.data.depth==2)&(cur_zoom==2)){
+      node.filter(n => n == dClick).attr("stroke-width", strokeWidth).attr("stroke", strokeColor)
+    }
+    updateLabelSize();
+    updateTitle();
+    reactivateMouseover(); // Reset the flag after the transition
+  });
+
+  // MT: recently added
+  if ([2,3,4].includes(cur_zoom)) {
+    node
+      .filter(node => node.data.depth === 4) // Filter layer 4 nodes
+      .transition(transition)
+      .style("fill-opacity", d => (opac_depth4)); // Adjust opacity value as needed
+  } else {
+    node
+      .filter(node => node.data.depth === 4) // Filter layer 4 nodes
+      .transition(transition)
+      .style("fill-opacity", d => (0)); // Adjust opacity value as needed
+  }
+}
+
+// initialisation of labels positioning
+updateLabelSize()
+// initialisation of title
+updateTitle()
+
+function updateTextSize(scale) {
+  label.selectAll("text").style("font-size", 20 / scale + "px");  
+}
+  return svg.node();
+}
+
+    
+// Call your function to create the chart
+const chartContainer = document.getElementById('chart');
+chartContainer.appendChild(create_chart(data_keywords));
+
+
+
+
+    
+  </script>
+</body>
+</html>
