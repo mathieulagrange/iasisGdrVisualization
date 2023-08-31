@@ -52,11 +52,14 @@ colors = listField.map((name, index) => {
   return { name, color: color_list[index]};
 });
 
+let seed = 100; // choose any positive integer
+
 function getRandomColor() {
   const letters = "0123456789ABCDEF";
   let color = "";
   for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
+    seed = Math.sin(seed) * 10000; // use Math.sin() to generate a pseudo-random number
+    color += letters[Math.floor((seed - Math.floor(seed)) * 16)]; // use the fractional part of the seed to get a letter
   }
   return color;
 };
