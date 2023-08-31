@@ -63,14 +63,14 @@ function getRandomColor() {
 // idFields = FileAttachment("IdFields.csv").csv({typed: true})
 // keyWords = FileAttachment("KeyWords_ISIS_20230512.csv").csv({typed: true})
 
-d3.csv("IdKeyWords.csv").get(function(idKeyWords)  {
-  d3.csv("IdFields.csv").get(function(idFields)  {
-    d3.csv("KeyWords_ISIS_20230512.csv").get(function(keyWords) {
+d3.csv("IdKeyWords.csv").then(function(idKeyWords)  {
+  d3.csv("IdFields.csv").then(function(idFields)  {
+    d3.csv("KeyWords_ISIS_20230512.csv").then(function(keyWords) {
       // const idKeyWords = new Map(idKeyWordsData.map(item => [item.idKeyWord, item]));
       // const idFields = new Map(idFieldsData.map(item => [item.idField, item]));
       // const keyWords = new Map(keyWordsData.map(item => [item.idKeyWord, item]));
       console.log('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
-      console.log(idKeyWords)
+      console.log(JSON.stringify(idKeyWords))
 
 //////////////////////////////
 ////////////////////////////
