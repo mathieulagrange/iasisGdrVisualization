@@ -68,68 +68,65 @@ keyWords = FileAttachment("KeyWords_ISIS_20230512.csv").csv({typed: true})
 // JOIN THE 3 CSV DATASETS
 //////////////////////////////
 
-files = {
-  // First join idKeyWords and idFields based on 'idFields'
-  const idKeyWordsTotal = idKeyWords.map(idKeyWordsItem => {
-    const matchingIdField = idFields.find(idFieldsItem => idFieldsItem.idField === idKeyWordsItem.idField);
-    return {
-      ...idKeyWordsItem,
-      field: matchingIdField ? matchingIdField.field : undefined
-    };
-  });
+// First join idKeyWords and idFields based on 'idFields'
+const idKeyWordsTotal = idKeyWords.map(idKeyWordsItem => {
+  const matchingIdField = idFields.find(idFieldsItem => idFieldsItem.idField === idKeyWordsItem.idField);
+  return {
+    ...idKeyWordsItem,
+    field: matchingIdField ? matchingIdField.field : undefined
+  };
+});
 
-  // Create a map using 'idKeyWord' as the key for faster lookup
-  const idKeyWordsFields = new Map(idKeyWordsTotal.map(totalItem => [totalItem.idKeyWord, totalItem]));
+// Create a map using 'idKeyWord' as the key for faster lookup
+const idKeyWordsFields = new Map(idKeyWordsTotal.map(totalItem => [totalItem.idKeyWord, totalItem]));
 
-  // Join idKeyWordsFields (join of idKeyWords and idFields) and keyWords on 'idKeyWord'
-  const joinedArray = keyWords.map(keyWordsItem => {
-    const matchingTotal = idKeyWordsFields.get(keyWordsItem.idKeyWord);
-    return {
-      ...keyWordsItem,
-      ...matchingTotal
-    };
-  });
+// Join idKeyWordsFields (join of idKeyWords and idFields) and keyWords on 'idKeyWord'
+const joinedArray = keyWords.map(keyWordsItem => {
+  const matchingTotal = idKeyWordsFields.get(keyWordsItem.idKeyWord);
+  return {
+    ...keyWordsItem,
+    ...matchingTotal
+  };
+});
 
-  // Group the rows of the joinedArray and count the number of rows in a new column 'count'
-  const groupedArray = joinedArray.reduce((accumulator, currentItem) => {
-    const { idKeyWord, keyWord, idField, field, nomLabo, sigleLabo, siteWeb } = currentItem;
-    const existingGroup = accumulator.find(groupItem => 
-      groupItem.idKeyWord === idKeyWord &&
-      groupItem.keyWord === keyWord &&
-      groupItem.idField === idField &&
-      groupItem.field === field &&
-      groupItem.nomLabo === nomLabo &&
-      groupItem.sigleLabo === sigleLabo
-    );
+// Group the rows of the joinedArray and count the number of rows in a new column 'count'
+const groupedArray = joinedArray.reduce((accumulator, currentItem) => {
+  const { idKeyWord, keyWord, idField, field, nomLabo, sigleLabo, siteWeb } = currentItem;
+  const existingGroup = accumulator.find(groupItem => 
+    groupItem.idKeyWord === idKeyWord &&
+    groupItem.keyWord === keyWord &&
+    groupItem.idField === idField &&
+    groupItem.field === field &&
+    groupItem.nomLabo === nomLabo &&
+    groupItem.sigleLabo === sigleLabo
+  );
 
-    if (existingGroup) {
-      existingGroup.count++;
-    } else {
-      accumulator.push({
-        ...currentItem,
-        count: 1,
-        siteWeb: siteWeb // Add the 'siteWeb' property to the group
-      });
-    }
+  if (existingGroup) {
+    existingGroup.count++;
+  } else {
+    accumulator.push({
+      ...currentItem,
+      count: 1,
+      siteWeb: siteWeb // Add the 'siteWeb' property to the group
+    });
+  }
 
-    return accumulator;
-  }, []);
+  return accumulator;
+}, []);
 
-  return groupedArray.map(item => ({
-    ...item,
-    field: item.field !== undefined ? item.field : '...'
-  }));
-}
+const files = groupedArray.map(item => ({
+  ...item,
+  field: item.field !== undefined ? item.field : '...'
+}));
+
 
 //////////////////////////////
 ////////////////////////////
 // CREATE HIERARCHICAL DATASET
 //////////////////////////////
 
-// Create the hierarchical nested structure
-data_keywords = { 
 // Create the hierarchical nested structure with updated value at the field layer
-const data_modan = {
+const data_keywords = {
   name: "IASIS",
   depth: 1,
   children: idFields.map(fieldEntry => {
@@ -168,8 +165,7 @@ const data_modan = {
     };
   })
 };
-                  return(data_modan)
-                 }
+
 
 
     

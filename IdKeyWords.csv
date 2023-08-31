@@ -1,0 +1,63 @@
+idKeyWord,idField,keyWord
+1,1,"Mesures d'informations, entropies, divergences"
+2,1,Information quantique
+3,1,"Temps-fréquence, temps-échelle, analyse harmonique"
+4,8,"Capteurs, co-conception acquisition/traitement"
+5,8,Problèmes inverses
+6,1,"Représentations parcimonieuses, ICA, tenseurs, matrices structurées"
+7,1,Inférence bayésienne
+8,1,"Détection-estimation, processus aléatoires"
+9,1,Grandes matrices aléatoires
+10,1,Signaux sur graphes
+11,1,Transport optimal
+12,1,Optimisation pour le TSI et l'apprentissage
+13,1,Inférence/optimisation sur variétés/groupes
+14,1,"Géométrie discrète, morphologie mathématique"
+15,6,Colorimétrie
+16,6,Qualité des signaux/images
+17,5,Calcul distribué
+18,5,IHM
+19,5,Adéquation algo/architectures
+20,5,"Langages systèmes, outils de développement"
+21,5,"Architectures hétérogènes, implémentation"
+22,5,Systèmes temps réel embarqués
+23,4,Compression
+24,4,Echantillonnage
+25,3,Formes d’ondes pour les télécom et la localisation
+26,3,Codes pour les systèmes multi-antennaires/utilisateurs
+27,3,Modélisation des performances des réseaux
+28,3,Codage réseaux
+29,3,TS pour les télécom
+30,4,"Tatouage, stéganographie, stéganalyse"
+31,4,Multimédia forensics
+32,4,Traçage de traitre
+33,4,"Hachage perceptuel, partage de secrets visuels"
+34,4,"Biométrie, sécurité des traits biométriques"
+35,4,Vidéo surveillance
+36,4,Analyse/traitement dans le domaine chiffré
+37,2,Apprentissage sous contrainte d’adversaire
+38,2,Apprentissage pour l'analyse de signaux et d’images
+39,2,"Apprentissage de représentation, apprentissage profond"
+40,2,"Compréhension, analyse des réseaux profonds"
+41,2,"Connaissances, explicabilité en apprentissage"
+42,7,"Multimodalité, fusion de l'information"
+43,6,"TS acoustique, audio, parole"
+44,7,"Télédétection, radar, sonar, traitement d’antenne"
+45,6,Vision par ordinateur
+46,9,"Aéronautique, spatial"
+47,9,Agroalimentaire
+48,9,"Astronomie, astrophysique"
+49,9,Biologie
+50,9,Chimie
+51,9,"Contrôle non destructif, surveillance, monitoring industriel,  manufacture, textile"
+52,9,"Environnement, énergie, eau"
+53,9,"Génie civil, bâtiments, architecture, urbanisme, valorisation du patrimoine, sauvegarde, création"
+54,9,"Géophysique, sismologie, sismique"
+55,9,Physique
+56,9,"Biomédical, médecine"
+57,9,"Multimédia, internet, jeux vidéos"
+58,9,"Presse et documents papier, films et enregistrements anciens"
+59,9,Robotique
+60,9,Sciences humaines et sociales
+61,3,"Télécom, réseau"
+62,9,Transport
