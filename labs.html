@@ -45,7 +45,7 @@ pack = data => d3.pack()
 
 color_list = ['b76dee','ec9880','a5f571','f578be', 'a18884', '7fbfd6', 'f9ac5f', 'f1e683', '898989'];
 listField = ['Théorie et Méthodes', 'Apprentissage Machine', 'Télécommunications', 'Codage et sécurité multimédia', 
-                 'Adéquation algorithme-architecture, traitements embarqués', 'Audio, vision, perception', 'Fusion, multimodalité, réseaux de capteurs, traitement multicanal', 'Imagerie computationnelle', 'Autres'];
+                 'Adéquation algorithme-architecture, traitements embarqués', 'Audio, vision, perception', 'Fusion, multimodalité, réseaux de capteurs, traitement multicanal', 'Imagerie computationnelle', 'Applications'];
 
 // Map the arrays together
 colors = listField.map((name, index) => {
@@ -740,7 +740,7 @@ function updateTextSize(scale) {
     
 // Call your function to create the chart
 const chartContainer = document.getElementById('chart');
-chartContainer.appendChild(create_chart(data_labs));
+chartContainer.appendChild(create_chart(data_labs, 17, undefined, undefined, undefined, undefined, undefined, false));
 
     })
     })
